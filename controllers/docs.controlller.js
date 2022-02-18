@@ -54,8 +54,14 @@ const sendEnvelope = async (args) => {
   
     // Call Envelopes::create API method
     // Exceptions will be caught by the calling function
-    results = await envelopesApi.createEnvelope(args.accountId,
-        {envelopeDefinition: envelope});
+
+    try{
+        results = await envelopesApi.createEnvelope(args.accountId,{envelopeDefinition: envelope});
+    }
+    catch(error){
+        return error
+    }
+
     let envelopeId = results.envelopeId;
   
     console.log(`Envelope was created. EnvelopeId ${envelopeId}`);
@@ -72,8 +78,38 @@ const sendEnvelope = async (args) => {
   
   
     // Create the envelope definition
-    let env = new docusign.EnvelopeDefinition();
-    env.emailSubject = 'Please sign this document set';
+    let envelopeDefinition = new docusign.EnvelopeDefinition();
+    envelopeDefinition.emailSubject = 'Please sign this document set';
+
+    //add expiration and reminders
+    // let notification = new docusign.Notification();
+    // notification.useAccountDefaults = false; // customize the notification for this envelope
+    // let reminders = new docusign.Reminders();
+    // reminders.reminderEnabled = true;
+    // reminders.reminderDelay = 3;  // first reminder to be sent three days after envelope was sent
+    // reminders.reminderFrequency = 2; // keep sending reminders every two days
+    // let expirations = new docusign.Expirations();
+    // expirations.expirationEnabled = true;
+    // expirations.expirationAfter = 30;  // envelope will expire after 30 days
+    // expirations.expirationWarn = 2;  // expiration reminder would be sent two days before expiration
+    // notification.expirations = expirations;
+    // notifications.reminders = reminders;
+
+    const notification = { 
+        useAccountDefaults : false, 
+        reminders : { 
+            reminderEnabled : true, 
+            reminderDelay : 1, 
+            reminderFrequency : 1 
+        }, 
+        expirations : { 
+             expirationEnabled : true, 
+             expirationAfter : 2, 
+             expirationWarn : 1 
+        } 
+    }
+
+    envelopeDefinition.notification = notification;
   
     // add the documents
     let doc1 = new docusign.Document()
@@ -93,7 +129,7 @@ const sendEnvelope = async (args) => {
       documentId: '2'});
   
     // The order in the docs array determines the order in the envelope
-    env.documents = [doc1,doc2];
+    envelopeDefinition.documents = [doc1,doc2];
   
     // create a signer recipient to sign the document, identified by name and email
     // We're setting the parameters via the object constructor
@@ -140,13 +176,13 @@ const sendEnvelope = async (args) => {
     let recipients = docusign.Recipients.constructFromObject({
     signers: [signer1],
     carbonCopies: [cc1]});
-    env.recipients = recipients;
+    envelopeDefinition.recipients = recipients;
   
     // Request that the envelope be sent by setting |status| to "sent".
     // To request that the envelope be created as a draft, set to "created"
-    env.status = args.status;
+    envelopeDefinition.status = args.status;
   
-    return env;
+    return envelopeDefinition;
   }
   
   
@@ -186,11 +222,17 @@ const sendEnvelope = async (args) => {
   
     // Step 1. Call Envelopes::get
     // Exceptions will be caught by the calling function
-    results = await envelopesApi.getEnvelope(
-      args.accountId,
-      args.envelopeId,
-      null
-    );
+    try{
+        results = await envelopesApi.getEnvelope(
+            args.accountId,
+            args.envelopeId,
+            null
+          );
+    }
+    catch(error){
+        return error
+    }
+    
     return results;
   };
 
