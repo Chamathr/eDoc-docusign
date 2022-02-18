@@ -4,22 +4,21 @@ const path = require('path');
 const demoDocsPath = path.resolve(__dirname, '../demo_docs');
 const doc2File = 'World_Wide_Corp_Battle_Plan_Trafalgar.docx';
 
-const sendDocument = async (req, res, next) => {
+const args = {
+    signerName: 'chamath',
+    ccEmail: 'chamatht20@gmail.com',
+    ccName: 'lochana',
+  
+    doc2File: path.resolve(demoDocsPath, doc2File),
+  
+    status: 'sent',
+    accessToken: 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQsAAAABAAUABwCAMXg6ivLZSAgAgHGbSM3y2UgCAPP7ppq2diBPqcFNypmKOLsVAAEAAAAYAAEAAAAFAAAADQAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjIgAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjEgABAAAACwAAAGludGVyYWN0aXZlMACABwMlivLZSDcAUtezSv9fRUygx03JuZtXHw.5msfT5LbpKiw1W4fJ5AMCEbu3YLyuReKxZjkeNoxwr9L9RxvhpZPZS6F6V0yTSUjF_FaJD16gw7U-3oto2SJToboP--a5QgKs1QbkW258jm7AmOu1PoQa3YToRXURMNv3G6tqQ-mEe-z7zHfSlXH2kkpxsEVZ_zrfISYw_Hb3H6W8wsnmH4dljU375JqGVCdZbEYbqXvgG69cHwpbnKAV7hEvqLkfKzx4ENmI1f2EkZQ3ZBoTZru1aDjiQ-Mc3oub45wsAO1UU7YHENBXU6maDekZb97_xhtxFUJHIyjtylhljsKq4X4wsEf_PgqE5PEUU2hOA6QzJ9zfdWq0AOt8g',
+    basePath: 'https://demo.docusign.net/restapi/',
+    accountId: '6389afb0-1cff-457a-995f-c484936c9faf'
+  }
 
-    const args = {
-        signerName: 'chamath',
-        signerEmail: 'chamatht20@gmail.com',
-        ccEmail: 'chamath@orelit.com',
-        ccName: 'lochana',
-      
-        doc2File: path.resolve(demoDocsPath, doc2File),
-      
-        status: 'sent',
-        accessToken: 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQsAAAABAAUABwCAMXg6ivLZSAgAgHGbSM3y2UgCAPP7ppq2diBPqcFNypmKOLsVAAEAAAAYAAEAAAAFAAAADQAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjIgAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjEgABAAAACwAAAGludGVyYWN0aXZlMACABwMlivLZSDcAUtezSv9fRUygx03JuZtXHw.5msfT5LbpKiw1W4fJ5AMCEbu3YLyuReKxZjkeNoxwr9L9RxvhpZPZS6F6V0yTSUjF_FaJD16gw7U-3oto2SJToboP--a5QgKs1QbkW258jm7AmOu1PoQa3YToRXURMNv3G6tqQ-mEe-z7zHfSlXH2kkpxsEVZ_zrfISYw_Hb3H6W8wsnmH4dljU375JqGVCdZbEYbqXvgG69cHwpbnKAV7hEvqLkfKzx4ENmI1f2EkZQ3ZBoTZru1aDjiQ-Mc3oub45wsAO1UU7YHENBXU6maDekZb97_xhtxFUJHIyjtylhljsKq4X4wsEf_PgqE5PEUU2hOA6QzJ9zfdWq0AOt8g',
-        basePath: 'https://demo.docusign.net/restapi/',
-        accountId: '6389afb0-1cff-457a-995f-c484936c9faf'
-      }
-      
+const sendDocument = async (req, res, next) => {
+    args.signerEmail = await req.params.email
     try{
         const results = await sendEnvelope(args)
         res.send(results)
@@ -27,6 +26,18 @@ const sendDocument = async (req, res, next) => {
         res.status(500).send({error})
       }
       
+}
+
+const getDocument = async (req, res, next) => {
+    args.signerEmail = await req.params.email
+    args.envelopeId = 'e1e57d1b-9cb6-46cd-b034-d20416ea3113'
+    try{
+        const results = await getEnvelope(args)
+        res.send(results)
+    }
+    catch(error){
+        res.status(500).send({error})
+    }
 }
 
 
@@ -48,7 +59,7 @@ const sendEnvelope = async (args) => {
     let envelopeId = results.envelopeId;
   
     console.log(`Envelope was created. EnvelopeId ${envelopeId}`);
-    return ({envelopeId: envelopeId})
+    return ({envelopeId: envelopeId, status: args.status})
   }
   
   
@@ -71,18 +82,18 @@ const sendEnvelope = async (args) => {
       ;
   
     doc1.documentBase64 = doc1b64;
-    doc1.name = 'Order acknowledgement'; // can be different from actual file name
+    doc1.name = 'Agreement'; // can be different from actual file name
     doc1.fileExtension = 'html'; // Source data format. Signed docs are always pdf.
     doc1.documentId = '1'; // a label used to reference the doc
   
     let doc2 = new docusign.Document.constructFromObject({
       documentBase64: doc2b64,
-      name: 'Battle Plan', // can be different from actual file name
+      name: 'Port City', // can be different from actual file name
       fileExtension: 'docx',
       documentId: '2'});
   
     // The order in the docs array determines the order in the envelope
-    env.documents = [doc1, doc2];
+    env.documents = [doc1,doc2];
   
     // create a signer recipient to sign the document, identified by name and email
     // We're setting the parameters via the object constructor
@@ -138,14 +149,6 @@ const sendEnvelope = async (args) => {
     return env;
   }
   
-  /**
-  * Creates document 1
-  * @function
-  * @private
-  * @param {Object} args parameters for the envelope:
-  *   <tt>signerEmail</tt>, <tt>signerName</tt>, <tt>ccEmail</tt>, <tt>ccName</tt>
-  * @returns {string} A document in HTML format
-  */
   
   const document1 = (args) => {
     return `
@@ -173,4 +176,22 @@ const sendEnvelope = async (args) => {
   `
   }
 
-  module.exports = {sendDocument}
+  const getEnvelope = async (args) => {
+  
+    let dsApiClient = new docusign.ApiClient();
+    dsApiClient.setBasePath(args.basePath);
+    dsApiClient.addDefaultHeader("Authorization", "Bearer " + args.accessToken);
+    let envelopesApi = new docusign.EnvelopesApi(dsApiClient),
+      results = null;
+  
+    // Step 1. Call Envelopes::get
+    // Exceptions will be caught by the calling function
+    results = await envelopesApi.getEnvelope(
+      args.accountId,
+      args.envelopeId,
+      null
+    );
+    return results;
+  };
+
+  module.exports = {sendDocument, getDocument}
