@@ -1,9 +1,7 @@
 var express = require('express');
 var router = express.Router();
+const documentController = require('../controllers/docs.controlller')
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+router.post('/docstatus', documentController.getDocumentStatus)
 
 module.exports = router;

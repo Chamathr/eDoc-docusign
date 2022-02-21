@@ -12,7 +12,7 @@ const args = {
     doc2File: path.resolve(demoDocsPath, doc2File),
   
     status: 'sent',
-    accessToken: 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQsAAAABAAUABwCAMXg6ivLZSAgAgHGbSM3y2UgCAPP7ppq2diBPqcFNypmKOLsVAAEAAAAYAAEAAAAFAAAADQAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjIgAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjEgABAAAACwAAAGludGVyYWN0aXZlMACABwMlivLZSDcAUtezSv9fRUygx03JuZtXHw.5msfT5LbpKiw1W4fJ5AMCEbu3YLyuReKxZjkeNoxwr9L9RxvhpZPZS6F6V0yTSUjF_FaJD16gw7U-3oto2SJToboP--a5QgKs1QbkW258jm7AmOu1PoQa3YToRXURMNv3G6tqQ-mEe-z7zHfSlXH2kkpxsEVZ_zrfISYw_Hb3H6W8wsnmH4dljU375JqGVCdZbEYbqXvgG69cHwpbnKAV7hEvqLkfKzx4ENmI1f2EkZQ3ZBoTZru1aDjiQ-Mc3oub45wsAO1UU7YHENBXU6maDekZb97_xhtxFUJHIyjtylhljsKq4X4wsEf_PgqE5PEUU2hOA6QzJ9zfdWq0AOt8g',
+    accessToken: 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQsAAAABAAUABwCAANCuKPXZSAgAgEDzvGv12UgCAPP7ppq2diBPqcFNypmKOLsVAAEAAAAYAAEAAAAFAAAADQAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjIgAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjEgABAAAACwAAAGludGVyYWN0aXZlMAAAyhGIKPXZSDcAUtezSv9fRUygx03JuZtXHw.Aq9ty3_nPGls0gRnpf-uaig6tzzsibeHxrHqEHRmQEQbF1tVv8FgH-prfxrIPYFT1jwlQUsCd9dSbAkbOscxL7crf7EVNdi6DjNkGbAZKrVET-9ODLSu2bcHsDEqm9UqOjpeCAXP4TI-1fr-qNTiM3lkX7N-Gh8K7RyExKZCsBb-tYrnp8lKSwK3OPY8pBxTX0v2CH2_g2jJntGB1WXfkC1KbJ9VzLLxT2kalKeT4Bc9yt9TScRv1t7PfRVvsuDapW6HMM5W0UHt6PzWqC3StilLDJTHIS4dEgXy_HPgdRn1PffxBUvFJ9apEy5MLRDz3LW0fOXH4ZnoTX93R1zhnA',
     basePath: 'https://demo.docusign.net/restapi/',
     accountId: '6389afb0-1cff-457a-995f-c484936c9faf'
   }
@@ -40,6 +40,16 @@ const getDocument = async (req, res, next) => {
     }
 }
 
+const getDocumentStatus = async (req, res, next) => {
+  try{
+    const data = await req.body
+    console.log(data)
+    res.status(200).end()
+  }
+  catch(error){
+    res.status(500).send({error})
+  }
+}
 
 const sendEnvelope = async (args) => {
 
@@ -81,20 +91,7 @@ const sendEnvelope = async (args) => {
     let envelopeDefinition = new docusign.EnvelopeDefinition();
     envelopeDefinition.emailSubject = 'Please sign this document set';
 
-    //add expiration and reminders
-    // let notification = new docusign.Notification();
-    // notification.useAccountDefaults = false; // customize the notification for this envelope
-    // let reminders = new docusign.Reminders();
-    // reminders.reminderEnabled = true;
-    // reminders.reminderDelay = 3;  // first reminder to be sent three days after envelope was sent
-    // reminders.reminderFrequency = 2; // keep sending reminders every two days
-    // let expirations = new docusign.Expirations();
-    // expirations.expirationEnabled = true;
-    // expirations.expirationAfter = 30;  // envelope will expire after 30 days
-    // expirations.expirationWarn = 2;  // expiration reminder would be sent two days before expiration
-    // notification.expirations = expirations;
-    // notifications.reminders = reminders;
-
+    //set notification configuration(expire date, warning email time interval)
     const notification = { 
         useAccountDefaults : false, 
         reminders : { 
@@ -110,6 +107,38 @@ const sendEnvelope = async (args) => {
     }
 
     envelopeDefinition.notification = notification;
+
+    //set webhook configurations
+    const eventNotification = {
+      // url: "https://webhook.site/ff7c7c68-cc27-4ef3-b4d8-0f39d9472e20",
+      url: "https://2e6d-2407-c00-e002-17e1-ac0c-4e38-9c41-c541.ngrok.io/docstatus", 
+
+      requireAcknowledgment: "true",
+      loggingEnabled: "true",
+      envelopeEvents: [
+          // {envelopeEventStatusCode: "Sent"},
+          // {envelopeEventStatusCode: "Delivered"},
+          // {envelopeEventStatusCode: "Declined"},
+          // {envelopeEventStatusCode: "Voided"},
+          {envelopeEventStatusCode: "Completed"}
+      ],
+      // recipientEvents: [
+      //     {recipientEventStatusCode: "Sent"},
+      //     {recipientEventStatusCode: "Delivered"},
+      //     {recipientEventStatusCode: "Completed"},
+      //     {recipientEventStatusCode: "Declined"},
+      //     {recipientEventStatusCode: "AuthenticationFailed"},
+      //     {recipientEventStatusCode: "AutoResponded"}
+      // ],
+      eventData: {
+          version: "restv2.1",
+          format:  "json",
+          // includeData: ["custom_fields", "extensions", "folders",
+          //     "recipients", "powerform", "tabs", "payment_tabs","documents"]
+      }
+    }
+    
+    envelopeDefinition.eventNotification = eventNotification;
   
     // add the documents
     let doc1 = new docusign.Document()
@@ -236,4 +265,4 @@ const sendEnvelope = async (args) => {
     return results;
   };
 
-  module.exports = {sendDocument, getDocument}
+  module.exports = {sendDocument, getDocument, getDocumentStatus}

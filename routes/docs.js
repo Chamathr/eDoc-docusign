@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.post('/:email', documentController.sendDocument);
 router.get('/:email', documentController.getDocument);
-
-
+// router.post('/docstatus', documentController.getDocumentStatus)
 
 module.exports = router;
