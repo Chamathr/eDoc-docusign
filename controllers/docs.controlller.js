@@ -84,8 +84,7 @@ const sendEnvelope = async (args) => {
     let doc2DocxBytes;
     // read files from a local directory
     // The reads could raise an exception if the file is not available!
-    doc2DocxBytes = fs.readFileSync(path.resolve(demoDocsPath, doc2File));
-  
+    doc2DocxBytes = fs.readFileSync(args.doc2File);
   
     // Create the envelope definition
     let envelopeDefinition = new docusign.EnvelopeDefinition();
@@ -141,10 +140,9 @@ const sendEnvelope = async (args) => {
     envelopeDefinition.eventNotification = eventNotification;
   
     // add the documents
-    let doc1 = new docusign.Document()
-      , doc1b64 = Buffer.from(document1(args)).toString('base64')
-      , doc2b64 = Buffer.from(doc2DocxBytes).toString('base64')
-      ;
+    let doc1 = new docusign.Document(), 
+        doc1b64 = Buffer.from(document1(args)).toString('base64'), 
+        doc2b64 = Buffer.from(doc2DocxBytes).toString('base64');
   
     doc1.documentBase64 = doc1b64;
     doc1.name = 'Agreement'; // can be different from actual file name
