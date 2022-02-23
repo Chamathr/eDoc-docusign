@@ -2,25 +2,115 @@ const docusign = require('docusign-esign');
 const fs = require("fs-extra");
 const path = require('path');
 const demoDocsPath = path.resolve(__dirname, '../demo_docs');
-const doc2File = 'World_Wide_Corp_Battle_Plan_Trafalgar.docx';
+const doc2File = 'World_Wide_Corp_lorem.pdf';
+const jwt = require("jsonwebtoken");
+const keyDirectory = path.resolve(__dirname, '../env');
+const keyFile = 'docusign.pem';
+const superagent = require('superagent');
+const { token } = require('morgan');
+
+const generateAndSignJWTAssertion = async () => {
+
+  let MILLESECONDS_PER_SECOND = 1000,
+    JWT_SIGNING_ALGO = "RS256",
+    now = Math.floor(Date.now() / MILLESECONDS_PER_SECOND),
+    later = Math.floor(now + (MILLESECONDS_PER_SECOND * 60 * 60))
+
+  let jwtPayload = {
+    iss: "bbc18eb9-9794-48d4-b6a7-5d052dc37575",
+    sub: "9aa6fbf3-76b6-4f20-a9c1-4dca998a38bb",
+    aud: "account-d.docusign.com",
+    iat: now,
+    exp: later,
+    scope: "signature impersonation",
+  };
+
+  const privateKey = fs.readFileSync(path.resolve(keyDirectory, keyFile))
+
+  return await jwt.sign(jwtPayload, privateKey, { algorithm: JWT_SIGNING_ALGO });
+};
+
+const sendJWTTokenRequest = async (assertion, oAuthBasePath) => {
+  const response = await superagent.post("https://" + oAuthBasePath + "/oauth/token")
+    // .timeout(exports.prototype.timeout)
+    .set('Content-Type', 'application/x-www-form-urlencoded')
+    .set('Cache-Control', 'no-store')
+    .set('Pragma', 'no-cache')
+    .send({
+      'assertion': assertion,
+      'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+    })
+    const {body: {access_token}} = response
+    return access_token;
+  
+};
+
+const requestJWTUserToken = async () => {
+    const assertion = await generateAndSignJWTAssertion();
+    const accessToken = await sendJWTTokenRequest(assertion, "account-d.docusign.com")
+    return accessToken
+};
+
+// const getAccessToken = async () => {
+
+//   const privateKey = fs.readFileSync(path.resolve(keyDirectory, keyFile))
+
+//   let header = {
+//     "typ": "JWT",
+//     "alg": "RS256",
+//   };
+  
+//   let now = Date.now()/1000;
+//   let later = now + (1000 * 60 * 60);
+//   let body = {
+//     iss: "85cebcdb-bb9a-4230-9dcd-53642dcc29e8",
+//     sub: "9aa6fbf3-76b6-4f20-a9c1-4dca998a38bb",
+//     iat: now,
+//     exp: later,
+//     aud: "account-d.docusign.com",
+//     scope: "signature impersonation"
+//   };
+
+//   try{
+//     header = Buffer.from(JSON.stringify(header)).toString('base64');
+//     body = Buffer.from(JSON.stringify(body)).toString('base64');
+  
+//     let payload = header + "." + body;
+//     let token = jwt.sign(body, privateKey, { algorithm: "RS256" });
+//     console.log("token", token);
+//     return token
+//   }
+//   catch(error){
+//     return error
+//   }
+// }
 
 const args = {
-    signerName: 'chamath',
-    ccEmail: 'chamatht20@gmail.com',
-    ccName: 'lochana',
+    signerName: 'Chamath',
+    ccEmail: 'chamath@orelit.com',
+    ccName: 'OREL IT',
   
     doc2File: path.resolve(demoDocsPath, doc2File),
+    privateKey: fs.readFileSync(path.resolve(keyDirectory, keyFile)),
+
+    clientId: "85cebcdb-bb9a-4230-9dcd-53642dcc29e8",
+    userId: "9aa6fbf3-76b6-4f20-a9c1-4dca998a38bb",
+    instanceUri: "account-d.docusign.com",
+    scope: "signature impersonation",
   
     status: 'sent',
-    accessToken: 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQsAAAABAAUABwCAANCuKPXZSAgAgEDzvGv12UgCAPP7ppq2diBPqcFNypmKOLsVAAEAAAAYAAEAAAAFAAAADQAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjIgAkAAAAMDEyZTdkNGEtOTcyNi00MWQ1LWJiNzktY2NkMGFkZGIyMTVjEgABAAAACwAAAGludGVyYWN0aXZlMAAAyhGIKPXZSDcAUtezSv9fRUygx03JuZtXHw.Aq9ty3_nPGls0gRnpf-uaig6tzzsibeHxrHqEHRmQEQbF1tVv8FgH-prfxrIPYFT1jwlQUsCd9dSbAkbOscxL7crf7EVNdi6DjNkGbAZKrVET-9ODLSu2bcHsDEqm9UqOjpeCAXP4TI-1fr-qNTiM3lkX7N-Gh8K7RyExKZCsBb-tYrnp8lKSwK3OPY8pBxTX0v2CH2_g2jJntGB1WXfkC1KbJ9VzLLxT2kalKeT4Bc9yt9TScRv1t7PfRVvsuDapW6HMM5W0UHt6PzWqC3StilLDJTHIS4dEgXy_HPgdRn1PffxBUvFJ9apEy5MLRDz3LW0fOXH4ZnoTX93R1zhnA',
+    accessToken: '',
     basePath: 'https://demo.docusign.net/restapi/',
     accountId: '6389afb0-1cff-457a-995f-c484936c9faf'
   }
 
+  // const value = requestJWTUserToken()
+
 const sendDocument = async (req, res, next) => {
     args.signerEmail = await req.params.email
     try{
-        const results = await sendEnvelope(args)
+        const accessToken = await requestJWTUserToken();
+        const results = await sendEnvelope(args, accessToken)
         res.send(results)
       }catch(error){
         res.status(500).send({error})
@@ -32,7 +122,7 @@ const getDocument = async (req, res, next) => {
     args.signerEmail = await req.params.email
     args.envelopeId = 'e1e57d1b-9cb6-46cd-b034-d20416ea3113'
     try{
-        const results = await getEnvelope(args)
+        const results = await getEnvelope(args, accessToken)
         res.send(results)
     }
     catch(error){
@@ -43,7 +133,6 @@ const getDocument = async (req, res, next) => {
 const getDocumentStatus = async (req, res, next) => {
   try{
     const data = await req.body
-    console.log(data)
     res.status(200).end()
   }
   catch(error){
@@ -51,11 +140,11 @@ const getDocumentStatus = async (req, res, next) => {
   }
 }
 
-const sendEnvelope = async (args) => {
+const sendEnvelope = async (args, accessToken) => {
 
     let dsApiClient = new docusign.ApiClient();
     dsApiClient.setBasePath(args.basePath);
-    dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + args.accessToken);
+    dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
     let envelopesApi = new docusign.EnvelopesApi(dsApiClient)
       , results = null;
   
@@ -109,8 +198,8 @@ const sendEnvelope = async (args) => {
 
     //set webhook configurations
     const eventNotification = {
-      // url: "https://webhook.site/ff7c7c68-cc27-4ef3-b4d8-0f39d9472e20",
-      url: "https://2e6d-2407-c00-e002-17e1-ac0c-4e38-9c41-c541.ngrok.io/docstatus", 
+      url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
+      // url: "https://15b9-119-235-9-146.ngrok.io/docstatus", 
 
       requireAcknowledgment: "true",
       loggingEnabled: "true",
@@ -152,7 +241,7 @@ const sendEnvelope = async (args) => {
     let doc2 = new docusign.Document.constructFromObject({
       documentBase64: doc2b64,
       name: 'Port City', // can be different from actual file name
-      fileExtension: 'docx',
+      fileExtension: 'pdf',
       documentId: '2'});
   
     // The order in the docs array determines the order in the envelope
@@ -239,11 +328,11 @@ const sendEnvelope = async (args) => {
   `
   }
 
-  const getEnvelope = async (args) => {
+  const getEnvelope = async (args, accessToken) => {
   
     let dsApiClient = new docusign.ApiClient();
     dsApiClient.setBasePath(args.basePath);
-    dsApiClient.addDefaultHeader("Authorization", "Bearer " + args.accessToken);
+    dsApiClient.addDefaultHeader("Authorization", "Bearer " + accessToken);
     let envelopesApi = new docusign.EnvelopesApi(dsApiClient),
       results = null;
   
