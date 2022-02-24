@@ -4,8 +4,8 @@ const CONSTANTS = require('../env/constant')
 
 
 const docusignDetails = {
-    ccEmail: CONSTANTS.DOCUSIGN_CC_EMAIL,
-    ccName: CONSTANTS.DOCUSIGN_CC_NAME,
+    // ccEmail: CONSTANTS.DOCUSIGN_CC_EMAIL,
+    // ccName: CONSTANTS.DOCUSIGN_CC_NAME,
 
     clientId: CONSTANTS.DOCUSIGN_CLIENT_ID,
     userId: CONSTANTS.DOCUSIGN_USER_ID,
@@ -18,9 +18,9 @@ const docusignDetails = {
   }
 
 const sendDocument = async (req, res, next) => {
-    docusignDetails.signerEmail = await req.body.email;
     docusignDetails.templateCategory = await req.body.templateCategory;
-    docusignDetails.signerName = 'Chamath'
+    docusignDetails.signerDetails = await req.body.signerDetails;
+
     try{
       const accessToken = await authFunctions.requestJWTUserToken(docusignDetails);
       const results = await envelopFunctions.sendEnvelope(docusignDetails, accessToken)
