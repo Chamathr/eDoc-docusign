@@ -28,7 +28,6 @@ const generateAndSignJWTAssertion = async (args) => {
   
   const sendJWTTokenRequest = async (assertion, oAuthBasePath) => {
     const response = await superagent.post("https://" + oAuthBasePath + "/oauth/token")
-      // .timeout(exports.prototype.timeout)
       .set('Content-Type', 'application/x-www-form-urlencoded')
       .set('Cache-Control', 'no-store')
       .set('Pragma', 'no-cache')
@@ -41,6 +40,7 @@ const generateAndSignJWTAssertion = async (args) => {
     
   };
   
+  /*return jwt tokent to access docusign APIs*/
   const requestJWTUserToken = async (args) => {
       const assertion = await generateAndSignJWTAssertion(args);
       const accessToken = await sendJWTTokenRequest(assertion, args.instanceUri)
