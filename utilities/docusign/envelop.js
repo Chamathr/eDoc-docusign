@@ -3,6 +3,7 @@ const fs = require("fs-extra");
 const path = require('path');
 const docsDirectory = path.resolve(__dirname, '../../demo_docs');
 const docsFile = 'World_Wide_Corp_lorem.pdf';
+const templatesFunctions = require('./templates')
 
 const pdfDocument = fs.readFileSync(path.resolve(docsDirectory, docsFile))
   
@@ -14,10 +15,8 @@ const sendEnvelope = async (args, accessToken) => {
     let envelopesApi = new docusign.EnvelopesApi(dsApiClient), results = null;
   
     // Make the envelope request body
-    let envelope = makeEnvelope(args)
+    const envelope = await makeEnvelopeWithDocusignTemplate(args, accessToken)
   
-    // Call Envelopes::create API method
-    // Exceptions will be caught by the calling function
     try{
         results = await envelopesApi.createEnvelope(args.accountId,{envelopeDefinition: envelope});
     }
@@ -30,9 +29,114 @@ const sendEnvelope = async (args, accessToken) => {
     console.log(`Envelope was created. EnvelopeId ${envelopeId}`);
     return ({envelopeId: envelopeId, status: args.envelopStatus})
   }
+
+
+  const makeEnvelopeWithDocusignTemplate = async (args, accessToken) => {
+
+    //create the envelope definition
+    const templateList = await templatesFunctions.getTemplates(args, accessToken)
+
+    let templateId
+    try{
+      templateList.envelopeTemplates.forEach(element => {
+        console.log(element);
+        if(element.name === args.templateCategory){
+          templateId = element.templateId
+        }
+        console.log(templateId);
+      });
+    }
+    catch(error){
+      return error
+    }
+
+    let envelopeDefinition = new docusign.EnvelopeDefinition();
+    envelopeDefinition.templateId = templateId;
+    // envelopeDefinition.templateId = 'd909a7ac-836d-453f-9e5e-c88ee4c15674';
+
+  
+    // Create template role elements to connect the signer and cc recipients
+    // to the template
+    // We're setting the parameters via the object creation
+    let signer1 = docusign.TemplateRole.constructFromObject({
+      email: args.signerEmail,
+      name: args.signerName,
+      roleName: "signer",
+    });
+
+    let signer2 = docusign.TemplateRole.constructFromObject({
+      email: args.ccEmail,
+      name: args.ccName,
+      roleName: "cc",
+    });
+  
+    // Create a cc template role.
+    // We're setting the parameters via setters
+
+    // let cc1 = new docusign.TemplateRole();
+    // cc1.email = args.ccEmail;
+    // cc1.name = args.ccName;
+    // cc1.roleName = "cc";
+  
+    // Add the TemplateRole objects to the envelope object
+    envelopeDefinition.templateRoles = [signer1, signer2];
+
+     //set notification configuration(expire date, warning email time interval)
+     const notification = { 
+      useAccountDefaults : false, 
+      reminders : { 
+          reminderEnabled : true, 
+          reminderDelay : 1, 
+          reminderFrequency : 1 
+      }, 
+      expirations : { 
+           expirationEnabled : true, 
+           expirationAfter : 2, 
+           expirationWarn : 1 
+      } 
+  }
+
+  envelopeDefinition.notification = notification;
+
+  //set webhook configurations
+  const eventNotification = {
+    url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
+    // url: "https://e288-2407-c00-4004-73f0-8471-9eff-105d-451b.ngrok.io/docstatus",
+
+    requireAcknowledgment: "true",
+    loggingEnabled: "true",
+    envelopeEvents: [
+        // {envelopeEventStatusCode: "Sent"},
+        // {envelopeEventStatusCode: "Delivered"},
+        // {envelopeEventStatusCode: "Declined"},
+        // {envelopeEventStatusCode: "Voided"},
+        {envelopeEventStatusCode: "Completed"}
+    ],
+    // recipientEvents: [
+    //     {recipientEventStatusCode: "Sent"},
+    //     {recipientEventStatusCode: "Delivered"},
+    //     {recipientEventStatusCode: "Completed"},
+    //     {recipientEventStatusCode: "Declined"},
+    //     {recipientEventStatusCode: "AuthenticationFailed"},
+    //     {recipientEventStatusCode: "AutoResponded"}
+    // ],
+    eventData: {
+        version: "restv2.1",
+        format:  "json",
+        // includeData: ["custom_fields", "extensions", "folders",
+        //     "recipients", "powerform", "tabs", "payment_tabs","documents"]
+    }
+  }
+  
+    envelopeDefinition.eventNotification = eventNotification;
+
+    envelopeDefinition.status = args.envelopStatus; 
+  
+    return envelopeDefinition;
+  }
   
   
-  const makeEnvelope = (args) => {
+  const makeEnvelopeWithStaticTemplate = (args) => {
   
     let doc2DocxBytes;
     // read files from a local directory
@@ -62,8 +166,8 @@ const sendEnvelope = async (args, accessToken) => {
 
     //set webhook configurations
     const eventNotification = {
-      url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
-      // url: "https://15b9-119-235-9-146.ngrok.io/docstatus", 
+    //   url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
+      url: "https://19a5-112-134-221-133.ngrok.io/docstatus", 
 
       requireAcknowledgment: "true",
       loggingEnabled: "true",
@@ -191,6 +295,9 @@ const sendEnvelope = async (args, accessToken) => {
     </html>
   `
   }
+
+
+
   
 
   const getEnvelope = async (args, accessToken) => {
@@ -200,7 +307,7 @@ const sendEnvelope = async (args, accessToken) => {
     dsApiClient.addDefaultHeader("Authorization", "Bearer " + accessToken);
     let envelopesApi = new docusign.EnvelopesApi(dsApiClient),
       results = null;
-  
+    
     // Step 1. Call Envelopes::get
     // Exceptions will be caught by the calling function
     try{
