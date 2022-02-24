@@ -2,7 +2,7 @@ const authFunctions = require('../utilities/docusign/authentication')
 const envelopFunctions = require('../utilities/docusign/envelop')
 const CONSTANTS = require('../env/constant')
 
-
+/*docusign account constant variable*/
 const docusignDetails = {
     // ccEmail: CONSTANTS.DOCUSIGN_CC_EMAIL,
     // ccName: CONSTANTS.DOCUSIGN_CC_NAME,
@@ -17,6 +17,7 @@ const docusignDetails = {
     envelopStatus: CONSTANTS.DOCUSIGN_ENVELOP_STATUS
   }
 
+/*send document*/
 const sendDocument = async (req, res, next) => {
     docusignDetails.templateCategory = await req.body.templateCategory;
     docusignDetails.signerDetails = await req.body.signerDetails;
@@ -30,6 +31,7 @@ const sendDocument = async (req, res, next) => {
     }
 }
 
+/*get document status using api passing envelop id*/ 
 const getDocument = async (req, res, next) => {
     docusignDetails.signerEmail = await req.params.email
     docusignDetails.envelopeId = '38496f5f-4ddd-4d67-bd21-3856910e4902'
@@ -43,6 +45,7 @@ const getDocument = async (req, res, next) => {
     }
 }
 
+/*fetch document details after complete via webhook*/
 const getDocumentStatus = async (req, res, next) => {
   try{
     const data = await req.body
