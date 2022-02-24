@@ -7,12 +7,12 @@ const superagent = require('superagent');
 
 const generateAndSignJWTAssertion = async (args) => {
 
-    let MILLESECONDS_PER_SECOND = 1000,
+    const MILLESECONDS_PER_SECOND = 1000,
       JWT_SIGNING_ALGO = "RS256",
       now = Math.floor(Date.now() / MILLESECONDS_PER_SECOND),
       later = Math.floor(now + (MILLESECONDS_PER_SECOND * 60 * 60))
   
-    let jwtPayload = {
+    const jwtPayload = {
       iss: args.clientId,
       sub: args.userId,
       aud: args.instanceUri,
