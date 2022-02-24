@@ -24,19 +24,19 @@ const sendEnvelope = async (args, accessToken) => {
         return error
     }
 
-    let envelopeId = results.envelopeId;
+    const envelopeId = results.envelopeId;
   
-    console.log(`Envelope was created. EnvelopeId ${envelopeId}`);
     return ({envelopeId: envelopeId, status: args.envelopStatus})
   }
 
 
+  /*create envelop with docusign account template*/
   const makeEnvelopeWithDocusignTemplate = async (args, accessToken) => {
 
     /*create the envelope definition*/
     const templateList = await templatesFunctions.getTemplates(args, accessToken)
 
-    let templateId
+    let templateId = null
     try{
       templateList.envelopeTemplates.forEach(element => {
         if(element.name === args.templateCategory){
@@ -169,6 +169,7 @@ const sendEnvelope = async (args, accessToken) => {
   };
   
   
+  /*create envelop with our document template*/
   const makeEnvelopeWithStaticTemplate = (args) => {
   
     let doc2DocxBytes;
