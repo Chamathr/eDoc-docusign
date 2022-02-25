@@ -1,6 +1,6 @@
 const authFunctions = require('../utilities/docusign/authentication')
 const envelopFunctions = require('../utilities/docusign/envelop')
-const CONSTANTS = require('../env/constant')
+const CONSTANTS = require('../env/docusign/constant')
 
 /*docusign account constant variable*/
 const docusignDetails = {

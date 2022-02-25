@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const path = require('path');
 const jwt = require("jsonwebtoken");
-const keyDirectory = path.resolve(__dirname, '../../env');
+const keyDirectory = path.resolve(__dirname, '../../env/docusign');
 const keyFile = 'docusign.pem';
 const superagent = require('superagent');
 

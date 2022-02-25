@@ -1,4 +1,4 @@
-//Docusign constant variables
+/*Docusign constant variables*/
 const DOCUSIGN_CLIENT_ID = 'bbc18eb9-9794-48d4-b6a7-5d052dc37575';
 const DOCUSIGN_USER_ID = '9aa6fbf3-76b6-4f20-a9c1-4dca998a38bb';
 const DOCUSIGN_INSTANCE_URI = 'account-d.docusign.com';
