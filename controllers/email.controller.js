@@ -1,7 +1,41 @@
 const CONSTANTS = require('../env/sendgrid/apiKey')
 const emailClient = require('@sendgrid/mail');
+const client = require('@sendgrid/client');
 
 emailClient.setApiKey(CONSTANTS.SENDGRID_API_KEY);
+client.setApiKey(CONSTANTS.SENDGRID_API_KEY);
+
+const twilioAccountSid = CONSTANTS.TWILIO_ACCOUNT_SID;
+const twilioAuthToken = CONSTANTS.TWILIO_AUTH_TOKEN;
+const twilioNumber = CONSTANTS.TWILIO_PHONE_NUMBER;
+const twilioServiceId = CONSTANTS.TWILIO_MESSAGE_SERVICE_ID;
+
+const smsClient = require('twilio')(twilioAccountSid, twilioAuthToken);
+
+const numbersList = ['+94726660070','+94702654310']
+// const numbersList = ['+94726660070']
+// const numbersList = ['+94702654310']
+
+
+/*send sms via sendgrid-twilio*/
+const sendSms = async (req, res, next) => {
+    try{
+        numbersList.map(async number => {
+            await smsClient.messages
+            .create({
+                body: 'This is a test message',
+                from: twilioNumber,
+                to: number
+            })
+        })
+    
+        res.send(`sent message successfully`)
+    }
+    catch(error){
+        res.status(500).send({error})
+    }
+}
+
 
 // const message = {
 //     personalizations: [
@@ -111,14 +145,20 @@ emailClient.setApiKey(CONSTANTS.SENDGRID_API_KEY);
 //     }
 //   };
 
+const emailList = [
+    'chamatht20@gmail.com',
+    'hashandarshika@gmail.com'
+]
+
 /*add email configurations*/
 const message = {
-    to: 'chamatht20@gmail.com',
+    to: emailList,
     from: 'chamath@orelit.com',
+    replyTo: 'chamath@orelit.com',
     subject: 'Sendgrid Test',
     text: 'Sengrid Test',
     html: '<h1>Sendgrid Test</h1>',
-    template_id: 'd-1922942f6c5a4229a8db162162e6bfae'
+    template_id: 'd-2940887fae764e8c8894acb3ebee2d1a'
 }
 
 /*send email via sendgrid*/
@@ -132,4 +172,30 @@ const sendEmail = async (req, res, next) => {
     }
 }
 
-module.exports = {sendEmail}
+const headers = {
+    "on-behalf-of": "The subuser's username. This header generates the API call as if the subuser account was making the call."
+  };
+  const data = {
+    "name": "example_name",
+    "generation": "dynamic"
+  };
+  
+  const request = {
+    url: `/v3/templates`,
+    method: 'POST',
+    headers: headers,
+    body: data
+  }
+
+  const createTemplate = async (req, res, next) => {
+    try{        
+        const response = await client.request(request)
+        res.send(response)
+    }
+    catch(error){
+        res.status(500).send({error})
+    }
+}
+
+
+module.exports = {sendEmail, createTemplate, sendSms}
