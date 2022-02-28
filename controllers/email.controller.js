@@ -1,6 +1,9 @@
 const CONSTANTS = require('../env/sendgrid/apiKey')
 const emailClient = require('@sendgrid/mail');
 const client = require('@sendgrid/client');
+const fs = require("fs");
+pathToAttachment = `${__dirname}/../demo_docs/World_Wide_Corp_lorem.pdf`;
+attachment = fs.readFileSync(pathToAttachment).toString("base64");
 
 emailClient.setApiKey(CONSTANTS.SENDGRID_API_KEY);
 client.setApiKey(CONSTANTS.SENDGRID_API_KEY);
@@ -15,7 +18,6 @@ const smsClient = require('twilio')(twilioAccountSid, twilioAuthToken);
 const numbersList = ['+94726660070','+94702654310']
 // const numbersList = ['+94726660070']
 // const numbersList = ['+94702654310']
-
 
 /*send sms via sendgrid-twilio*/
 const sendSms = async (req, res, next) => {
@@ -146,19 +148,32 @@ const sendSms = async (req, res, next) => {
 //   };
 
 const emailList = [
-    'chamatht20@gmail.com',
-    'hashandarshika@gmail.com'
+    {
+        to: 'chamatht20@gmail.com'
+    },
+    {
+        to: 'hashandarshika@gmail.com'
+    }
 ]
 
 /*add email configurations*/
 const message = {
-    to: emailList,
+    // to: emailList,
+    personalizations: emailList,
     from: 'chamath@orelit.com',
     replyTo: 'chamath@orelit.com',
     subject: 'Sendgrid Test',
     text: 'Sengrid Test',
     html: '<h1>Sendgrid Test</h1>',
-    template_id: 'd-2940887fae764e8c8894acb3ebee2d1a'
+    template_id: 'd-10b15317d62844458515bcee0158d451',
+    attachments: [
+        {
+          content: attachment,
+          filename: "World_Wide_Corp_lorem.pdf",
+          type: "application/pdf",
+          disposition: "attachment"
+        }
+      ]
 }
 
 /*send email via sendgrid*/
