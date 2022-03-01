@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.post('/', emailController.sendEmail)
 router.post('/template', emailController.createTemplate)
-router.post('/sms', emailController.sendSms)
-
+router.post('/status', emailController.getEmailStatus)
 
 module.exports = router

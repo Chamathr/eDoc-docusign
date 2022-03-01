@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post('/', documentController.sendDocument);
 router.get('/', documentController.getDocument);
-router.post('/docstatus', documentController.getDocumentStatus)
+router.post('/status', documentController.getDocumentStatus)
 
 module.exports = router;

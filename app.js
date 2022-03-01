@@ -8,6 +8,8 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var docsRouter = require('./routes/docs');
 var emailsRouter = require('./routes/emails');
+var smsRouter = require('./routes/sms');
+
 
 var app = express();
 
@@ -25,6 +27,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/docs', docsRouter);
 app.use('/emails', emailsRouter);
+app.use('/sms', smsRouter);
 
 
 // catch 404 and forward to error handler

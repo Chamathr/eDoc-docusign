@@ -212,5 +212,16 @@ const headers = {
     }
 }
 
+/*fetch email details after complete via webhook*/
+const getEmailStatus = async (req, res, next) => {
+    try{
+      const data = await req.body
+      console.log(data);
+      res.status(200).end()
+    }
+    catch(error){
+      res.status(500).send({error})
+    }
+  }
 
-module.exports = {sendEmail, createTemplate, sendSms}
+module.exports = {sendEmail, createTemplate, getEmailStatus}
