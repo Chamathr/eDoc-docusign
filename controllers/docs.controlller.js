@@ -1,6 +1,7 @@
 const authFunctions = require('../utilities/docusign/authentication')
 const envelopFunctions = require('../utilities/docusign/envelop')
 const CONSTANTS = require('../constants/docusign/constant')
+const responses = require('../constants/responses')
 
 /*docusign account constant variable*/
 const docusignDetails = {
@@ -25,9 +26,11 @@ const sendDocument = async (req, res, next) => {
     try{
       const accessToken = await authFunctions.requestJWTUserToken(docusignDetails);
       const results = await envelopFunctions.sendEnvelope(docusignDetails, accessToken)
-      res.send(results)
+      responses.responseBody.results = results
+      res.send(responses.responseBody)
     }catch(error){
-      res.status(500).send({error})
+      responses.errorBody.error = error
+      res.status(500).send(responses.errorBody)
     }
 }
 
@@ -36,12 +39,14 @@ const getDocument = async (req, res, next) => {
     docusignDetails.signerEmail = await req.params.email
     docusignDetails.envelopeId = '38496f5f-4ddd-4d67-bd21-3856910e4902'
     try{
-        const accessToken = await authFunctions.requestJWTUserToken(docusignDetails);
-        const results = await envelopFunctions.getEnvelope(docusignDetails, accessToken)
-        res.send(results)
+      const accessToken = await authFunctions.requestJWTUserToken(docusignDetails);
+      const results = await envelopFunctions.getEnvelope(docusignDetails, accessToken)
+      responses.responseBody.results = results
+      res.send(responses.responseBody)
     }
     catch(error){
-        res.status(500).send({error})
+      responses.errorBody.error = error
+      res.status(500).send(responses.errorBody)
     }
 }
 
@@ -53,7 +58,8 @@ const getDocumentStatus = async (req, res, next) => {
     res.status(200).end()
   }
   catch(error){
-    res.status(500).send({error})
+    responses.errorBody.error = error
+    res.status(500).send(responses.errorBody)
   }
 }
 

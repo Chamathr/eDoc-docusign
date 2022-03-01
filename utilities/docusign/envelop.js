@@ -15,13 +15,12 @@ const sendEnvelope = async (args, accessToken) => {
     let envelopesApi = new docusign.EnvelopesApi(dsApiClient), results = null;
   
     /*Make the envelope request body*/
-    const envelope = await makeEnvelopeWithDocusignTemplate(args, accessToken)
-  
     try{
-        results = await envelopesApi.createEnvelope(args.accountId,{envelopeDefinition: envelope});
+      const envelope = await makeEnvelopeWithDocusignTemplate(args, accessToken)
+      results = await envelopesApi.createEnvelope(args.accountId,{envelopeDefinition: envelope});
     }
     catch(error){
-        return error
+      return error
     }
 
     const envelopeId = results.envelopeId;
@@ -110,7 +109,7 @@ const sendEnvelope = async (args, accessToken) => {
   /*set webhook configurations*/
   const eventNotification = {
     // url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
-    url: "https://ab71-112-134-222-12.ngrok.io/docs/status",
+    url: "https://08c2-112-134-222-12.ngrok.io/docs/status",
 
     requireAcknowledgment: "true",
     loggingEnabled: "true",

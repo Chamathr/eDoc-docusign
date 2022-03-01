@@ -3,8 +3,9 @@ const twilioAccountSid = CONSTANTS.TWILIO_ACCOUNT_SID;
 const twilioAuthToken = CONSTANTS.TWILIO_AUTH_TOKEN;
 const twilioNumber = CONSTANTS.TWILIO_PHONE_NUMBER;
 const twilioServiceId = CONSTANTS.TWILIO_MESSAGE_SERVICE_ID;
-
 const smsClient = require('twilio')(twilioAccountSid, twilioAuthToken);
+
+const responses = require('../constants/responses')
 
 // const numbersList = ['+94726660070','+94702654310']
 // const numbersList = ['+94726660070']
@@ -22,10 +23,11 @@ const sendSms = async (req, res, next) => {
             })
         })
     
-        res.send(`sent message successfully`)
+        res.send(responses.responseBody)
     }
     catch(error){
-        res.status(500).send({error})
+        // responses.errorBody.error = error
+        res.status(500).send(responses.errorBody)
     }
 }
 

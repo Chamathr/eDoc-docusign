@@ -4,6 +4,8 @@ const client = require('@sendgrid/client');
 const fs = require("fs");
 pathToAttachment = `${__dirname}/../demo_docs/World_Wide_Corp_lorem.pdf`;
 attachment = fs.readFileSync(pathToAttachment).toString("base64");
+const responses = require('../constants/responses')
+
 
 emailClient.setApiKey(CONSTANTS.SENDGRID_API_KEY);
 client.setApiKey(CONSTANTS.SENDGRID_API_KEY);
@@ -41,10 +43,11 @@ const message = {
 const sendEmail = async (req, res, next) => {
     try{        
         await emailClient.send(message)
-        res.send('Email sent successfully')
+        res.send(responses.responseBody)
     }
     catch(error){
-        res.status(500).send({error})
+        responses.errorBody.error = error
+        res.status(500).send(responses.errorBody)
     }
 }
 
@@ -56,7 +59,8 @@ const getEmailStatus = async (req, res, next) => {
       res.status(200).end()
     }
     catch(error){
-      res.status(500).send({error})
+      responses.errorBody.error = error
+      res.status(500).send(responses.errorBody)
     }
   }
 
