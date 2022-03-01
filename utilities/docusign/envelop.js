@@ -110,7 +110,7 @@ const sendEnvelope = async (args, accessToken) => {
   /*set webhook configurations*/
   const eventNotification = {
     // url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
-    url: "https://9760-112-134-220-51.ngrok.io/docs/docstatus",
+    url: "https://ab71-112-134-222-12.ngrok.io/docs/status",
 
     requireAcknowledgment: "true",
     loggingEnabled: "true",
