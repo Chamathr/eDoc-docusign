@@ -5,6 +5,7 @@ const fs = require("fs");
 pathToAttachment = `${__dirname}/../demo_docs/World_Wide_Corp_lorem.pdf`;
 attachment = fs.readFileSync(pathToAttachment).toString("base64");
 const responses = require('../constants/responses')
+const templateFunctions = require('../utilities/sendgrid/templates')
 
 
 emailClient.setApiKey(CONSTANTS.SENDGRID_API_KEY);
@@ -41,9 +42,31 @@ const message = {
 
 /*send email via sendgrid*/
 const sendEmail = async (req, res, next) => {
-    try{        
-        await emailClient.send(message)
-        res.send(responses.responseBody)
+    let templateId = null
+    const templateName = await req.body.name
+    try{
+        const templateList = await templateFunctions.getTemplateList(client)
+        if(templateList){
+          templateList[0].body.result.map(template => {
+            if(template.name === templateName){
+              templateId = template.id
+              return
+            }
+          })
+          if(templateId){
+            message.template_id = templateId
+            await emailClient.send(message)
+            return res.send(responses.responseBody)
+          }
+          else{
+            responses.errorBody.error = "Template is not existing"
+            return res.send(responses.errorBody)
+          }
+        }
+        else{
+          responses.errorBody.error = "There are no templates"
+          return res.send(responses.errorBody)
+        }    
     }
     catch(error){
         responses.errorBody.error = error
@@ -64,29 +87,64 @@ const getEmailStatus = async (req, res, next) => {
     }
   }
 
-const headers = {
+const createTemplateDataHeader = {
     "on-behalf-of": "The subuser's username. This header generates the API call as if the subuser account was making the call."
   };
-  const data = {
+  const createTemplateData = {
     "name": "example_name",
     "generation": "dynamic"
   };
   
-  const request = {
+  const createTemplateRequest = {
     url: `/v3/templates`,
     method: 'POST',
-    headers: headers,
-    body: data
+    // headers: createTemplateDataHeader,
+    body: createTemplateData
   }
 
   const createTemplate = async (req, res, next) => {
     try{        
-        const response = await client.request(request)
-        res.send(response)
+      const result = await client.request(createTemplateRequest)
+      responses.responseBody.result = result
+      res.send(responses.responseBody)
     }
     catch(error){
-        res.status(500).send({error})
+      responses.errorBody.error = error
+      res.status(500).send(responses.errorBody)
     }
 }
 
-module.exports = {sendEmail, createTemplate, getEmailStatus}
+
+
+
+
+const getTemplateHeader = {
+  "on-behalf-of": "The subuser's username. This header generates the API call as if the subuser account was making the call."
+};
+const getTemplateParams = {
+  "generations": "dynamic",
+  "page_size": 20
+};
+
+const getTemplateRequest = {
+  url: `/v3/templates`,
+  method: 'GET',
+  // headers: getTemplateHeader,
+  qs: getTemplateParams
+}
+
+const getTemplate = async (req, res, next) => {
+  try{        
+    const result = await client.request(getTemplateRequest)
+    responses.responseBody.result = result
+    res.send(responses.responseBody)
+  }
+  catch(error){
+    responses.errorBody.error = error
+    res.status(500).send(responses.errorBody)
+  }
+}
+
+
+
+module.exports = {sendEmail, createTemplate, getEmailStatus, getTemplate}
