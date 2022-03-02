@@ -26,8 +26,14 @@ const sendDocument = async (req, res, next) => {
     try{
       const accessToken = await authFunctions.requestJWTUserToken(docusignDetails);
       const results = await envelopFunctions.sendEnvelope(docusignDetails, accessToken)
-      responses.responseBody.results = results
-      res.send(responses.responseBody)
+      if(results.status === 200){
+        responses.responseBody.results = results
+        return res.send(responses.responseBody)
+      }else{
+        responses.errorBody.status = results.status
+        responses.errorBody.error = results
+        return res.send(responses.errorBody)
+      }
     }catch(error){
       responses.errorBody.error = error
       res.status(500).send(responses.errorBody)

@@ -31,116 +31,126 @@ const sendEnvelope = async (args, accessToken) => {
 
   /*create envelop with docusign account template*/
   const makeEnvelopeWithDocusignTemplate = async (args, accessToken) => {
-
-    /*create the envelope definition*/
-    const templateList = await templatesFunctions.getTemplates(args, accessToken)
-
     let templateId = null
     try{
-      templateList.envelopeTemplates.forEach(element => {
-        if(element.name === args.templateCategory){
-          templateId = element.templateId
-          return
+      /*create the envelope definition*/
+      const templateList = await templatesFunctions.getTemplates(args, accessToken)
+
+      if(templateList){
+        templateList.envelopeTemplates.map(element => {
+          if(element.name === args.templateCategory){
+            templateId = element.templateId
+            return
+          }
+        });
+        if(templateId){
+            let envelopeDefinition = new docusign.EnvelopeDefinition();
+            envelopeDefinition.templateId = templateId;
+
+            /*Create template role elements to connect the signer and cc recipients to the template
+            We're setting the parameters via the object creation*/
+            let signers = []
+            args.signerDetails.forEach((element, index) => {
+              let signer = docusign.TemplateRole.constructFromObject({
+                email: element.email,
+                name: element.name,
+                roleName: element.role,
+                recipientId: index + 1,
+                routingOrder: index + 1
+              });
+              signers.push(signer)
+            })
+
+            // let signer1 = docusign.TemplateRole.constructFromObject({
+            //   email: args.signerEmail,
+            //   name: args.signerName,
+            //   roleName: "signer",
+            // });
+
+            // let signer2 = docusign.TemplateRole.constructFromObject({
+            //   email: args.ccEmail,
+            //   name: args.ccName,
+            //   roleName: "cc",
+            // });
+          
+            // Create a cc template role.
+            // We're setting the parameters via setters
+
+            // let cc1 = new docusign.TemplateRole();
+            // cc1.email = args.ccEmail;
+            // cc1.name = args.ccName;
+            // cc1.roleName = "cc";
+          
+            // Add the TemplateRole objects to the envelope object
+            // envelopeDefinition.templateRoles = [signer1, signer2];
+            envelopeDefinition.templateRoles = signers;
+
+            /*set notification configuration(expire date, warning email time interval)*/
+            const notification = { 
+              useAccountDefaults : false, 
+              reminders : { 
+                  reminderEnabled : true, 
+                  reminderDelay : 1, 
+                  reminderFrequency : 1 
+              }, 
+              expirations : { 
+                  expirationEnabled : true, 
+                  expirationAfter : 2, 
+                  expirationWarn : 1 
+              } 
+          }
+
+          envelopeDefinition.notification = notification;
+
+          /*set webhook configurations*/
+          const eventNotification = {
+            // url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
+            url: "https://08c2-112-134-222-12.ngrok.io/docs/status",
+
+            requireAcknowledgment: "true",
+            loggingEnabled: "true",
+            envelopeEvents: [
+                // {envelopeEventStatusCode: "Sent"},
+                // {envelopeEventStatusCode: "Delivered"},
+                // {envelopeEventStatusCode: "Declined"},
+                // {envelopeEventStatusCode: "Voided"},
+                {envelopeEventStatusCode: "Completed"}
+            ],
+            // recipientEvents: [
+            //     {recipientEventStatusCode: "Sent"},
+            //     {recipientEventStatusCode: "Delivered"},
+            //     {recipientEventStatusCode: "Completed"},
+            //     {recipientEventStatusCode: "Declined"},
+            //     {recipientEventStatusCode: "AuthenticationFailed"},
+            //     {recipientEventStatusCode: "AutoResponded"}
+            // ],
+            eventData: {
+                version: "restv2.1",
+                format:  "json",
+                // includeData: ["custom_fields", "extensions", "folders",
+                //     "recipients", "powerform", "tabs", "payment_tabs","documents"]
+            }
+          }
+          
+            envelopeDefinition.eventNotification = eventNotification;
+
+            envelopeDefinition.status = args.envelopStatus; 
+          
+            return envelopeDefinition;
         }
-      });
+        else{
+          return "Template is not existing"
+        }
+      }
+      else{
+        return "There are no templates";
+      }
+      
     }
     catch(error){
       return error
     }
 
-    let envelopeDefinition = new docusign.EnvelopeDefinition();
-    envelopeDefinition.templateId = templateId;
-
-    /*Create template role elements to connect the signer and cc recipients to the template
-    We're setting the parameters via the object creation*/
-    let signers = []
-    args.signerDetails.forEach((element, index) => {
-      let signer = docusign.TemplateRole.constructFromObject({
-        email: element.email,
-        name: element.name,
-        roleName: element.role,
-        recipientId: index + 1,
-        routingOrder: index + 1
-      });
-      signers.push(signer)
-    })
-
-    // let signer1 = docusign.TemplateRole.constructFromObject({
-    //   email: args.signerEmail,
-    //   name: args.signerName,
-    //   roleName: "signer",
-    // });
-
-    // let signer2 = docusign.TemplateRole.constructFromObject({
-    //   email: args.ccEmail,
-    //   name: args.ccName,
-    //   roleName: "cc",
-    // });
-  
-    // Create a cc template role.
-    // We're setting the parameters via setters
-
-    // let cc1 = new docusign.TemplateRole();
-    // cc1.email = args.ccEmail;
-    // cc1.name = args.ccName;
-    // cc1.roleName = "cc";
-  
-    // Add the TemplateRole objects to the envelope object
-    // envelopeDefinition.templateRoles = [signer1, signer2];
-    envelopeDefinition.templateRoles = signers;
-
-    /*set notification configuration(expire date, warning email time interval)*/
-     const notification = { 
-      useAccountDefaults : false, 
-      reminders : { 
-          reminderEnabled : true, 
-          reminderDelay : 1, 
-          reminderFrequency : 1 
-      }, 
-      expirations : { 
-           expirationEnabled : true, 
-           expirationAfter : 2, 
-           expirationWarn : 1 
-      } 
-  }
-
-  envelopeDefinition.notification = notification;
-
-  /*set webhook configurations*/
-  const eventNotification = {
-    // url: "https://webhook.site/ee03eaec-eaa4-4271-a314-3507fab639f5",
-    url: "https://08c2-112-134-222-12.ngrok.io/docs/status",
-
-    requireAcknowledgment: "true",
-    loggingEnabled: "true",
-    envelopeEvents: [
-        // {envelopeEventStatusCode: "Sent"},
-        // {envelopeEventStatusCode: "Delivered"},
-        // {envelopeEventStatusCode: "Declined"},
-        // {envelopeEventStatusCode: "Voided"},
-        {envelopeEventStatusCode: "Completed"}
-    ],
-    // recipientEvents: [
-    //     {recipientEventStatusCode: "Sent"},
-    //     {recipientEventStatusCode: "Delivered"},
-    //     {recipientEventStatusCode: "Completed"},
-    //     {recipientEventStatusCode: "Declined"},
-    //     {recipientEventStatusCode: "AuthenticationFailed"},
-    //     {recipientEventStatusCode: "AutoResponded"}
-    // ],
-    eventData: {
-        version: "restv2.1",
-        format:  "json",
-        // includeData: ["custom_fields", "extensions", "folders",
-        //     "recipients", "powerform", "tabs", "payment_tabs","documents"]
-    }
-  }
-  
-    envelopeDefinition.eventNotification = eventNotification;
-
-    envelopeDefinition.status = args.envelopStatus; 
-  
-    return envelopeDefinition;
   }
 
 
