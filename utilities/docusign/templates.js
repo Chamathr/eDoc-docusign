@@ -8,8 +8,6 @@ const getTemplates = async (args, accessToken) => {
     let templatesApi = new docusign.TemplatesApi(dsApiClient),
       results = null;
     
-    // Step 1. Call Envelopes::get
-    // Exceptions will be caught by the calling function
     try{
         results = await templatesApi.listTemplates(args.accountId)
     }
