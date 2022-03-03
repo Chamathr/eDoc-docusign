@@ -56,6 +56,7 @@ const sendEmail = async (req, res, next) => {
           if(templateId){
             message.template_id = templateId
             await emailClient.send(message)
+            responses.responseBody.results = ''
             return res.send(responses.responseBody)
           }
           else{

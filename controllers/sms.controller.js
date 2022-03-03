@@ -23,10 +23,11 @@ const sendSms = async (req, res, next) => {
             })
         })
     
+        responses.responseBody.results = ''
         res.send(responses.responseBody)
     }
     catch(error){
-        // responses.errorBody.error = error
+        responses.errorBody.error = error
         res.status(500).send(responses.errorBody)
     }
 }
